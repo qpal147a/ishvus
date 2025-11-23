@@ -1,0 +1,382 @@
+-- 在 ServerScriptService 中创建 ModuleScript，命名为 ModernUILibrary
+local ModernUILibrary = {}
+
+-- 颜色主题配置
+ModernUILibrary.Themes = {
+	Light = {
+		Primary = Color3.fromRGB(74, 124, 255),
+		Secondary = Color3.fromRGB(149, 174, 255),
+		Background = Color3.fromRGB(245, 247, 255),
+		Surface = Color3.fromRGB(255, 255, 255),
+		Text = Color3.fromRGB(33, 33, 33),
+		TextSecondary = Color3.fromRGB(117, 117, 117),
+		Success = Color3.fromRGB(76, 175, 80),
+		Warning = Color3.fromRGB(255, 152, 0),
+		Error = Color3.fromRGB(244, 67, 54)
+	},
+	Dark = {
+		Primary = Color3.fromRGB(101, 146, 255),
+		Secondary = Color3.fromRGB(149, 174, 255),
+		Background = Color3.fromRGB(18, 18, 18),
+		Surface = Color3.fromRGB(30, 30, 30),
+		Text = Color3.fromRGB(255, 255, 255),
+		TextSecondary = Color3.fromRGB(170, 170, 170),
+		Success = Color3.fromRGB(76, 175, 80),
+		Warning = Color3.fromRGB(255, 152, 0),
+		Error = Color3.fromRGB(244, 67, 54)
+	}
+}
+
+-- 当前主题
+ModernUILibrary.CurrentTheme = ModernUILibrary.Themes.Dark
+
+-- 创建基础 GUI 容器
+function ModernUILibrary:CreateScreenGui(name, parent)
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = name
+	screenGui.DisplayOrder = 10
+	screenGui.ResetOnSpawn = false
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.Parent = parent or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	
+	return screenGui
+end
+
+-- 创建现代化按钮
+function ModernUILibrary:CreateButton(options)
+	local button = Instance.new("TextButton")
+	button.Name = options.Name or "ModernButton"
+	button.Size = options.Size or UDim2.new(0, 200, 0, 50)
+	button.Position = options.Position or UDim2.new(0.5, -100, 0.5, -25)
+	button.AnchorPoint = Vector2.new(0.5, 0.5)
+	button.BackgroundColor3 = self.CurrentTheme.Primary
+	button.TextColor3 = self.CurrentTheme.Text
+	button.Text = options.Text or "Button"
+	button.Font = Enum.Font.GothamSemibold
+	button.TextSize = 14
+	button.AutoButtonColor = false
+	button.ClipsDescendants = true
+
+	-- 圆角
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = button
+
+	-- 描边
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = self.CurrentTheme.Primary
+	stroke.Thickness = 2
+	stroke.Parent = button
+
+	-- 悬停效果
+	local hoverFrame = Instance.new("Frame")
+	hoverFrame.Name = "HoverEffect"
+	hoverFrame.Size = UDim2.new(1, 0, 1, 0)
+	hoverFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+	hoverFrame.BackgroundTransparency = 0.9
+	hoverFrame.BorderSizePixel = 0
+	hoverFrame.Visible = false
+	hoverFrame.Parent = button
+
+	local hoverCorner = Instance.new("UICorner")
+	hoverCorner.CornerRadius = UDim.new(0, 8)
+	hoverCorner.Parent = hoverFrame
+
+	-- 点击效果
+	local clickFrame = Instance.new("Frame")
+	clickFrame.Name = "ClickEffect"
+	clickFrame.Size = UDim2.new(0, 0, 0, 0)
+	clickFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	clickFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	clickFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+	clickFrame.BackgroundTransparency = 0.8
+	clickFrame.BorderSizePixel = 0
+	clickFrame.Visible = false
+	clickFrame.Parent = button
+
+	local clickCorner = Instance.new("UICorner")
+	clickCorner.CornerRadius = UDim.new(1, 0)
+	clickCorner.Parent = clickFrame
+
+	-- 交互效果
+	button.MouseEnter:Connect(function()
+		hoverFrame.Visible = true
+		game:GetService("TweenService"):Create(
+			button, TweenInfo.new(0.2), {BackgroundColor3 = self.CurrentTheme.Secondary}
+		):Play()
+	end)
+
+	button.MouseLeave:Connect(function()
+		hoverFrame.Visible = false
+		game:GetService("TweenService"):Create(
+			button, TweenInfo.new(0.2), {BackgroundColor3 = self.CurrentTheme.Primary}
+		):Play()
+	end)
+
+	button.MouseButton1Down:Connect(function()
+		clickFrame.Visible = true
+		clickFrame.Size = UDim2.new(0, 0, 0, 0)
+		game:GetService("TweenService"):Create(
+			clickFrame, 
+			TweenInfo.new(0.3), 
+			{Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1}
+		):Play()
+	end)
+
+	button.MouseButton1Up:Connect(function()
+		wait(0.3)
+		clickFrame.Visible = false
+	end)
+
+	-- 点击回调
+	if options.Callback then
+		button.MouseButton1Click:Connect(options.Callback)
+	end
+
+	return button
+end
+
+-- 创建卡片组件
+function ModernUILibrary:CreateCard(options)
+	local card = Instance.new("Frame")
+	card.Name = options.Name or "ModernCard"
+	card.Size = options.Size or UDim2.new(0, 300, 0, 200)
+	card.Position = options.Position or UDim2.new(0, 0, 0, 0)
+	card.BackgroundColor3 = self.CurrentTheme.Surface
+	card.BorderSizePixel = 0
+	card.ClipsDescendants = true
+
+	-- 圆角
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 12)
+	corner.Parent = card
+
+	-- 阴影效果
+	local shadow = Instance.new("ImageLabel")
+	shadow.Name = "Shadow"
+	shadow.Size = UDim2.new(1, 20, 1, 20)
+	shadow.Position = UDim2.new(0, -10, 0, -10)
+	shadow.BackgroundTransparency = 1
+	shadow.Image = "rbxassetid://1316045217"
+	shadow.ImageColor3 = Color3.new(0, 0, 0)
+	shadow.ImageTransparency = 0.8
+	shadow.ScaleType = Enum.ScaleType.Slice
+	shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+	shadow.Parent = card
+
+	-- 内容容器
+	local content = Instance.new("Frame")
+	content.Name = "Content"
+	content.Size = UDim2.new(1, -24, 1, -24)
+	content.Position = UDim2.new(0, 12, 0, 12)
+	content.BackgroundTransparency = 1
+	content.Parent = card
+
+	local layout = Instance.new("UIListLayout")
+	layout.Padding = UDim.new(0, 8)
+	layout.Parent = content
+
+	return card, content
+end
+
+-- 创建模态对话框
+function ModernUILibrary:CreateModal(options)
+	local modal = Instance.new("Frame")
+	modal.Name = options.Name or "ModernModal"
+	modal.Size = UDim2.new(1, 0, 1, 0)
+	modal.BackgroundColor3 = Color3.new(0, 0, 0)
+	modal.BackgroundTransparency = 0.5
+	modal.BorderSizePixel = 0
+	modal.Visible = false
+
+	-- 对话框内容
+	local dialog, content = self:CreateCard({
+		Size = options.Size or UDim2.new(0, 400, 0, 300),
+		Position = UDim2.new(0.5, -200, 0.5, -150)
+	})
+	dialog.Name = "Dialog"
+	dialog.AnchorPoint = Vector2.new(0.5, 0.5)
+	dialog.Parent = modal
+
+	-- 关闭按钮
+	local closeButton = self:CreateButton({
+		Text = "Close",
+		Size = UDim2.new(0, 80, 0, 32),
+		Position = UDim2.new(1, -90, 1, -40),
+		Callback = function()
+			self:HideModal(modal)
+		end
+	})
+	closeButton.Parent = dialog
+
+	-- 显示/隐藏方法
+	function modal:Show()
+		modal.Visible = true
+		dialog.Position = UDim2.new(0.5, -200, 0.4, -150)
+		game:GetService("TweenService"):Create(
+			dialog, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{Position = UDim2.new(0.5, -200, 0.5, -150)}
+		):Play()
+	end
+
+	function modal:Hide()
+		self:HideModal(modal)
+	end
+
+	return modal
+end
+
+function ModernUILibrary:HideModal(modal)
+	local dialog = modal:FindFirstChild("Dialog")
+	if dialog then
+		game:GetService("TweenService"):Create(
+			dialog, TweenInfo.new(0.2),
+			{Position = UDim2.new(0.5, -200, 0.4, -150)}
+		):Play()
+	end
+	wait(0.2)
+	modal.Visible = false
+end
+
+-- 创建通知组件
+function ModernUILibrary:CreateNotification(options)
+	local notification = Instance.new("Frame")
+	notification.Name = "Notification"
+	notification.Size = UDim2.new(0, 300, 0, 80)
+	notification.Position = UDim2.new(1, 320, 0, 20)
+	notification.BackgroundColor3 = self.CurrentTheme.Surface
+	notification.BorderSizePixel = 0
+
+	-- 圆角
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 8)
+	corner.Parent = notification
+
+	-- 左侧颜色指示器
+	local indicator = Instance.new("Frame")
+	indicator.Name = "Indicator"
+	indicator.Size = UDim2.new(0, 4, 1, -16)
+	indicator.Position = UDim2.new(0, 8, 0, 8)
+	indicator.BackgroundColor3 = options.Type and self.CurrentTheme[options.Type] or self.CurrentTheme.Primary
+	indicator.BorderSizePixel = 0
+	indicator.Parent = notification
+
+	local indicatorCorner = Instance.new("UICorner")
+	indicatorCorner.CornerRadius = UDim.new(1, 0)
+	indicatorCorner.Parent = indicator
+
+	-- 标题
+	local title = Instance.new("TextLabel")
+	title.Name = "Title"
+	title.Size = UDim2.new(1, -40, 0, 20)
+	title.Position = UDim2.new(0, 20, 0, 12)
+	title.BackgroundTransparency = 1
+	title.Text = options.Title or "Notification"
+	title.TextColor3 = self.CurrentTheme.Text
+	title.Font = Enum.Font.GothamSemibold
+	title.TextSize = 14
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Parent = notification
+
+	-- 消息
+	local message = Instance.new("TextLabel")
+	message.Name = "Message"
+	message.Size = UDim2.new(1, -40, 1, -40)
+	message.Position = UDim2.new(0, 20, 0, 32)
+	message.BackgroundTransparency = 1
+	message.Text = options.Message or ""
+	message.TextColor3 = self.CurrentTheme.TextSecondary
+	message.Font = Enum.Font.Gotham
+	message.TextSize = 12
+	message.TextXAlignment = Enum.TextXAlignment.Left
+	message.TextYAlignment = Enum.TextYAlignment.Top
+	message.Parent = notification
+
+	-- 关闭按钮
+	local closeButton = Instance.new("TextButton")
+	closeButton.Name = "CloseButton"
+	closeButton.Size = UDim2.new(0, 20, 0, 20)
+	closeButton.Position = UDim2.new(1, -28, 0, 12)
+	closeButton.BackgroundTransparency = 1
+	closeButton.Text = "×"
+	closeButton.TextColor3 = self.CurrentTheme.TextSecondary
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.TextSize = 16
+	closeButton.Parent = notification
+
+	-- 显示通知
+	function notification:Show(duration)
+		duration = duration or 5
+		notification.Visible = true
+		
+		-- 滑入动画
+		game:GetService("TweenService"):Create(
+			notification, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{Position = UDim2.new(1, -320, 0, 20)}
+		):Play()
+
+		-- 自动关闭
+		delay(duration, function()
+			notification:Hide()
+		end)
+	end
+
+	-- 隐藏通知
+	function notification:Hide()
+		game:GetService("TweenService"):Create(
+			notification, TweenInfo.new(0.3),
+			{Position = UDim2.new(1, 320, 0, 20)}
+		):Play()
+		wait(0.3)
+		notification:Destroy()
+	end
+
+	closeButton.MouseButton1Click:Connect(function()
+		notification:Hide()
+	end)
+
+	return notification
+end
+
+-- 创建进度条
+function ModernUILibrary:CreateProgressBar(options)
+	local progressBar = Instance.new("Frame")
+	progressBar.Name = options.Name or "ProgressBar"
+	progressBar.Size = options.Size or UDim2.new(0, 200, 0, 8)
+	progressBar.BackgroundColor3 = self.CurrentTheme.Surface
+	progressBar.BorderSizePixel = 0
+
+	-- 圆角
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = progressBar
+
+	-- 进度填充
+	local fill = Instance.new("Frame")
+	fill.Name = "Fill"
+	fill.Size = UDim2.new(options.Value or 0, 0, 1, 0)
+	fill.BackgroundColor3 = self.CurrentTheme.Primary
+	fill.BorderSizePixel = 0
+	fill.Parent = progressBar
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(1, 0)
+	fillCorner.Parent = fill
+
+	-- 设置进度值
+	function progressBar:SetValue(value)
+		value = math.clamp(value, 0, 1)
+		game:GetService("TweenService"):Create(
+			fill, TweenInfo.new(0.3), {Size = UDim2.new(value, 0, 1, 0)}
+		):Play()
+	end
+
+	-- 设置颜色
+	function progressBar:SetColor(color)
+		fill.BackgroundColor3 = color
+	end
+
+	return progressBar
+end
+
+return ModernUILibrary
